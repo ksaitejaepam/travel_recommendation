@@ -22,13 +22,14 @@ public class AdminService {
                 .map(user -> {
                     UserResponse response = new UserResponse();
                     response.setId(user.getId());
-                    response.setEmail(user.getUsername()); // Assuming username is used as email
-                    response.setFirstname(user.getFirstName()); // Adjust based on actual field names
-                    response.setLastname(user.getLastName()); // Adjust based on actual field names
+                    response.setEmail(user.getUsername());
+                    response.setFirstName(user.getFirstName()); // Adjust based on actual field names
+                    response.setLastName(user.getLastName()); // Adjust based on actual field names
                     response.setGender(user.getGender()); // Adjust based on actual field names
                     response.setCountry(user.getCountry()); // Adjust based on actual field names
                     response.setCity(user.getCity()); // Adjust based on actual field names
                     response.setEnabled(user.isEnabled());
+                    response.setImageUrl(user.getImageUrl());
                     return response;
                 })
                 .collect(Collectors.toList());

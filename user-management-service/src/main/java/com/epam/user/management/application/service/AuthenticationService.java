@@ -2,9 +2,12 @@ package com.epam.user.management.application.service;
 
 import com.epam.user.management.application.dto.RegisterRequest;
 import com.epam.user.management.application.dto.RegisterResponse;
+import com.epam.user.management.application.dto.UserResponse;
 import com.epam.user.management.application.entity.User;
 import com.epam.user.management.application.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.java.Log;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,16 +23,21 @@ public class AuthenticationService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private ObjectMapper objectMapper;
+
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationService(
             UserRepository userRepository,
             AuthenticationManager authenticationManager,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            ObjectMapper objectMapper
+
     ) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.objectMapper = objectMapper;
     }
 
     public RegisterResponse register(RegisterRequest registerRequest) {
@@ -46,6 +54,8 @@ public class AuthenticationService {
                     .gender(registerRequest.getGender())
                     .country(registerRequest.getCountry())
                     .city(registerRequest.getCity())
+                    .role("User")
+                    .isEnabled(true)
                     .build();
             userRepository.save(newUser);
             return RegisterResponse.builder().message("User registration successful").build();
@@ -63,5 +73,10 @@ public class AuthenticationService {
 
         return userRepository.findByEmail(email)
                 .orElseThrow();
+    }
+
+    public UserResponse getProfileByUsers(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        return user.map(value -> objectMapper.convertValue(value, UserResponse.class)).orElse(null);
     }
 }
