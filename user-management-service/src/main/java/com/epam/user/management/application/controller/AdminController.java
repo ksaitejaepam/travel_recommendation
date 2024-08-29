@@ -80,6 +80,7 @@ public class AdminController {
             if(!currentUser.get().getRole().equals("Admin")){
                 return ResponseEntity.badRequest().body(new MessageResponse("You are not authorized for this action"));
             }
+
             userOptional.ifPresent(user -> {
                 user.setEnabled(false);
                 adminService.saveUser(user);

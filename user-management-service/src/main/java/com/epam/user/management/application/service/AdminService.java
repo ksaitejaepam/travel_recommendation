@@ -17,7 +17,8 @@ public class AdminService {
     private UserRepository userRepository;
 
     public List<UserResponse> getAllUsers() {
-        List<User> users=userRepository.findAll();
+        //List<User> users=userRepository.findAll();
+        List<User> users = userRepository.findByRole("User");
         return users.stream()
                 .map(user -> {
                     UserResponse response = new UserResponse();
