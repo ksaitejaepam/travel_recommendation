@@ -14,6 +14,6 @@ import lombok.NoArgsConstructor;
 public class LoginResponse {
     private String message;
     private String token;
-
+    private String role;
     private long expiresIn;
 }

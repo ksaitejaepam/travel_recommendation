@@ -23,7 +23,7 @@ import java.util.List;
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    private Long id;
 
     @Column(nullable = false)
     private String firstName;
@@ -36,6 +36,15 @@ public class User implements UserDetails {
 
     @Column(nullable = false)
     private String password;
+
+    @Column(nullable = true)
+    private String imageUrl;
+
+    @Column(nullable = false)
+    private String role;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean isEnabled;
 
     @Column(nullable = false)
     private String gender;
@@ -81,6 +90,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return UserDetails.super.isEnabled();
+        return this.isEnabled;
     }
 }
