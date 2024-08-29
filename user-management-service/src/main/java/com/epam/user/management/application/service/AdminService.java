@@ -46,4 +46,8 @@ public class AdminService {
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
+
+    public Optional<User> getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
 }
