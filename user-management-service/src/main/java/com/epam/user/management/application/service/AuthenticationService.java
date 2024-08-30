@@ -1,8 +1,6 @@
 package com.epam.user.management.application.service;
 
-import com.epam.user.management.application.dto.RegisterRequest;
-import com.epam.user.management.application.dto.RegisterResponse;
-import com.epam.user.management.application.dto.UserResponse;
+import com.epam.user.management.application.dto.*;
 import com.epam.user.management.application.entity.User;
 import com.epam.user.management.application.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -75,8 +74,5 @@ public class AuthenticationService {
                 .orElseThrow();
     }
 
-    public UserResponse getProfileByUsers(String email) {
-        Optional<User> user = userRepository.findByEmail(email);
-        return user.map(value -> objectMapper.convertValue(value, UserResponse.class)).orElse(null);
-    }
+
 }
