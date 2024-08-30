@@ -1,42 +1,39 @@
 package com.epam.user.management.application.controller;
-
-import com.epam.user.management.application.dto.MessageResponse;
-import com.epam.user.management.application.dto.UserResponse;
-import com.epam.user.management.application.entity.User;
-import com.epam.user.management.application.service.AdminService;
+import com.epam.user.management.application.dto.*;
+import com.epam.user.management.application.service.AdminServiceImpl;
+import com.epam.user.management.application.service.AuthenticationService;
 import com.epam.user.management.application.service.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/admin")
-public class AdminController {
+public class AdminController{
 
     @Autowired
-    private AdminService adminService;
+    private AdminServiceImpl adminServiceImpl;
     private JwtService jwtService;
+    private final AuthenticationService authenticationService;
 
-
-
-    public AdminController(AdminService adminService, JwtService jwtService) {
+    public AdminController(AdminServiceImpl adminServiceImpl, JwtService jwtService, AuthenticationService authenticationService) {
         this.jwtService = jwtService;
-        this.adminService = adminService;
+        this.adminServiceImpl = adminServiceImpl;
+        this.authenticationService = authenticationService;
     }
 
     @GetMapping("/users")
     public List<UserResponse> getAllUsers() {
-        return adminService.getAllUsers();
+        return adminServiceImpl.getAllUsers();
     }
 
     @PutMapping("/users/{id}/enable")
-    public ResponseEntity<MessageResponse> enableUser(@RequestBody Long id,HttpServletRequest request) {
-        // Extract the Authorization header
+    public ResponseEntity<MessageResponse> enableUser(@PathVariable Long id, HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
 
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
@@ -45,26 +42,12 @@ public class AdminController {
 
         String token = authorizationHeader.substring(7);
         String email = jwtService.extractUsername(token);
-        Optional<User> currentUser=adminService.getUserByEmail(email);
-        Optional<User> userOptional = adminService.getUserById(id);
-
-        if (userOptional.isPresent()) {
-            if(!currentUser.get().getRole().equals("Admin")){
-                return ResponseEntity.badRequest().body(new MessageResponse("You are not authorized for this action"));
-            }
-            userOptional.ifPresent(user -> {
-                user.setEnabled(true);
-                adminService.saveUser(user);
-            });
-            return ResponseEntity.ok(new MessageResponse("User enabled successfully"));
-        } else {
-            return ResponseEntity.badRequest().body(new MessageResponse("User not found"));
-        }
+        MessageResponse response = adminServiceImpl.enableUser(id, email);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/users/{id}/disable")
-    public ResponseEntity<MessageResponse> disableUser(@RequestBody Long id, HttpServletRequest request) {
-        // Extract the Authorization header
+    public ResponseEntity<MessageResponse> disableUser(@PathVariable Long id, HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
 
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
@@ -73,21 +56,21 @@ public class AdminController {
 
         String token = authorizationHeader.substring(7);
         String email = jwtService.extractUsername(token);
-        Optional<User> currentUser=adminService.getUserByEmail(email);
-        Optional<User> userOptional = adminService.getUserById(id);
-
-        if (userOptional.isPresent()) {
-            if(!currentUser.get().getRole().equals("Admin")){
-                return ResponseEntity.badRequest().body(new MessageResponse("You are not authorized for this action"));
-            }
-
-            userOptional.ifPresent(user -> {
-                user.setEnabled(false);
-                adminService.saveUser(user);
-            });
-            return ResponseEntity.ok(new MessageResponse("User disabled successfully"));
-        } else {
-            return ResponseEntity.badRequest().body(new MessageResponse("User not found"));
-        }
+        MessageResponse response = adminServiceImpl.disableUser(id, email);
+        return ResponseEntity.ok(response);
     }
+    @PostMapping(value = "/users/create", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<RegisterResponse> create(@RequestBody UserCreateRequest userCreateRequest) {
+
+        RegisterResponse registerResponse = adminServiceImpl.create(userCreateRequest);
+
+        return ResponseEntity.ok(registerResponse);
+    }
+    @PutMapping("/users/{id}/update")
+    public ResponseEntity<MessageResponse> updateUser(@PathVariable Long id, @RequestBody UserEditRequest userEditRequest) {
+        MessageResponse response = adminServiceImpl.updateUser(id,userEditRequest);
+        return ResponseEntity.ok(response);
+    }
+
 }
+ 

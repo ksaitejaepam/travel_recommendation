@@ -9,7 +9,7 @@ WHERE NOT EXISTS (
 
 -- Insert the user with role 'ADMIN'
 INSERT INTO users (id, first_name, last_name, email, password, gender, country, city, role)
-SELECT 2, 'Jane', 'Smith', 'admin@epam.com', '$2a$12$hIArTwcUrcLf5LcdMO1buuydrd1lslCk1U6A.gIOc7zjhmrKvmedy', 'Female', 'USA', 'Los Angeles', 'Admin'
+SELECT 3, 'Jane', 'Smith', 'admin@epam.com', '$2a$12$hIArTwcUrcLf5LcdMO1buuydrd1lslCk1U6A.gIOc7zjhmrKvmedy', 'Female', 'USA', 'Los Angeles', 'Admin'
 WHERE NOT EXISTS (
     SELECT 1 FROM users WHERE email = 'admin@epam.com'
 );
