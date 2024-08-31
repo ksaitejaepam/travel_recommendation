@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 @Service
 public class AdminServiceImpl implements AdminService{
 
-
     private UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
