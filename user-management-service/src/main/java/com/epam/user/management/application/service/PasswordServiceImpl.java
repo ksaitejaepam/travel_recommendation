@@ -23,7 +23,8 @@ public class PasswordServiceImpl implements PasswordService{
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    private static final String PASSWORD_PATTERN = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,12}$";
+    private static final String PASSWORD_PATTERN = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&#])[A-Za-z\\d@$!%*?&#]{8,12}$";
+
 
     public PasswordServiceImpl(
             UserRepository userRepository,

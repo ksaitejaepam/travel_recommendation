@@ -26,17 +26,17 @@ public class PasswordController {
         ForgotPasswordResponse response = passwordService.isEmailPresent(forgotPasswordRequest.getEmail());
         if (response.isEmailExists()) {
             userEmail= forgotPasswordRequest.getEmail();
-            return ResponseEntity.ok(new ForgotPasswordResponse("Email is present, please change your password.",true));
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.ok(new ForgotPasswordResponse("Email doesn't exist.",false));
+            return ResponseEntity.ok(response);
         }
     }
     @PostMapping("/reset")
     public ResponseEntity<ResetPasswordResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest) {
         ResetPasswordResponse response = passwordService.resetPassword(userEmail,resetPasswordRequest);
         if(!response.isSuccess()){
-            return ResponseEntity.ok(new ResetPasswordResponse("Error resetting password.",false));
+            return ResponseEntity.ok(response);
         }
-        return ResponseEntity.ok(new ResetPasswordResponse("password has been reset successfully",true));
+        return ResponseEntity.ok(response);
     }
 }
