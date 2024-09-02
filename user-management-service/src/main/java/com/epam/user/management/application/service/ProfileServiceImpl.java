@@ -8,6 +8,7 @@ import com.epam.user.management.application.exception.UnauthorizedAccessExceptio
 import com.epam.user.management.application.exception.UserNotFoundException;
 import com.epam.user.management.application.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.java.Log;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +18,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Optional;
 import java.util.regex.Pattern;
-
+@Log
 @Service
 public class ProfileServiceImpl implements ProfileService{
 
@@ -51,7 +52,10 @@ public class ProfileServiceImpl implements ProfileService{
         Optional<User> user = userRepository.findByEmail(email);
         if(user.isPresent()) {
             if ("User".equalsIgnoreCase(user.get().getRole())) {
+                log.info(user.get().getImageUrl());
                 return user.map(value -> objectMapper.convertValue(value, UserResponse.class)).orElse(null);
+
+
             } else {
                 throw new UnauthorizedAccessException("Access denied for users with role: " + user.get().getRole());
             }
@@ -74,7 +78,7 @@ public class ProfileServiceImpl implements ProfileService{
         userResponse.setGender(updatedUser.getGender());
         userResponse.setCity(updatedUser.getCity());
         userResponse.setCountry(updatedUser.getCountry());
-        userResponse.setProfileImageUrl(updatedUser.getImageUrl());
+        userResponse.setImageUrl(updatedUser.getImageUrl());
         userRepository.save(updatedUser);
     }
 }

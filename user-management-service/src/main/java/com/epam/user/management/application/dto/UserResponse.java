@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class UserResponse {
     private Long id;
 //    private byte[] image;
-    private String profileImageUrl;
+    private String imageUrl;
     private String email;
     private String firstName;
     private String lastName;

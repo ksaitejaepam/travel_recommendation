@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class AdminServiceImpl implements AdminService{
+public class AdminServiceImpl extends AdminService{
 
     private UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;

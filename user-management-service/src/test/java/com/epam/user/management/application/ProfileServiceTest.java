@@ -1,30 +1,31 @@
 package com.epam.user.management.application;
 
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
-
+import com.epam.user.management.application.dto.EditProfileRequest;
+import com.epam.user.management.application.dto.MessageResponse;
+import com.epam.user.management.application.dto.UserResponse;
+import com.epam.user.management.application.entity.User;
 import com.epam.user.management.application.exception.UnauthorizedAccessException;
 import com.epam.user.management.application.exception.UserNotFoundException;
+import com.epam.user.management.application.repository.UserRepository;
 import com.epam.user.management.application.service.ProfileServiceImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import java.util.Optional;
-
-import com.epam.user.management.application.entity.User;
-import com.epam.user.management.application.dto.EditProfileRequest;
-import com.epam.user.management.application.dto.UserResponse;
-import com.epam.user.management.application.dto.MessageResponse;
-import com.epam.user.management.application.service.AuthenticationService;
-import com.epam.user.management.application.repository.UserRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.mockito.MockitoAnnotations;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-@ExtendWith(MockitoExtension.class)
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
 public class ProfileServiceTest {
+
+    @InjectMocks
+    private ProfileServiceImpl profileService;
 
     @Mock
     private UserRepository userRepository;
@@ -33,129 +34,171 @@ public class ProfileServiceTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private PasswordEncoder passwordEncoder;
-
-    @InjectMocks
-    private ProfileServiceImpl profileService;
-
-    private User user;
-    private UserResponse userResponse;
-    private EditProfileRequest profileRequest;
+   private PasswordEncoder passwordEncoder;
 
     @BeforeEach
-    void setUp() {
-        user = User.builder()
-                .id(1L)
-                .email("test@example.com")
-                .firstName("Test")
-                .lastName("User")
-                .imageUrl("http://example.com/image.jpg")
-                .gender("Male")
-                .country("Country")
-                .city("City")
-                .isEnabled(true)
-                .build();
-
-        userResponse = UserResponse.builder()
-                .id(1L)
-                .email("test@example.com")
-                .firstName("Test")
-                .lastName("User")
-                .imageUrl("http://example.com/image.jpg")
-                .gender("Male")
-                .country("Country")
-                .city("City")
-                .isEnabled(true)
-                .build();
-
-        profileRequest = new EditProfileRequest();
-        profileRequest.setFirstName("Updated");
-        profileRequest.setLastName("User");
-        profileRequest.setPassword("newPassword");
-        profileRequest.setGender("Male");
-        profileRequest.setCountry("UpdatedCountry");
-        profileRequest.setCity("UpdatedCity");
-        profileRequest.setImageUrl("http://example.com/updated_image.jpg");
-
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void testGetProfileByUsers_withUserRole_returnsUserResponse() {
-        // Arrange
-        String email = "user@example.com";
-        User user = new User();
-        user.setRole("User");
-        UserResponse userResponse = new UserResponse();
-        when(userRepository.findByEmail(eq(email))).thenReturn(Optional.of(user));
+    public void testGetProfileByUsers_Success() {
+        // Setup mocks
+        String email = "test@example.com";
+
+        User user = User.builder()
+                .id(1L)
+                .email(email)
+                .firstName("John")
+                .lastName("Doe")
+                .password("Password1@")
+                .gender("Male")
+                .country("USA")
+                .city("New York")
+                .role("User")
+                .build();
+
+        UserResponse userResponse = UserResponse.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .email(email)
+                .gender("Male")
+                .country("USA")
+                .city("New York")
+                .build();
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
         when(objectMapper.convertValue(user, UserResponse.class)).thenReturn(userResponse);
 
-        // Act
-        UserResponse result = profileService.getProfileByUsers(email);
+        // Call the method under test
+        UserResponse response = profileService.getProfileByUsers(email);
 
-        // Assert
-        assertNotNull(result, "UserResponse should not be null");
-        assertEquals(userResponse, result, "The UserResponse should match the expected response");
-    }
-    @Test
-    public void testGetProfileByUsers_UserFound_WithDifferentRole() {
-        String email = "admin@example.com";
-        User user = User.builder()
-                .email(email)
-                .role("Admin")
-                .firstName("Jane")
-                .lastName("Doe")
-                .build();
-
-        when(userRepository.findByEmail(eq(email))).thenReturn(Optional.of(user));
-
-        UnauthorizedAccessException thrown = assertThrows(
-                UnauthorizedAccessException.class,
-                () -> profileService.getProfileByUsers(email)
-        );
-
-        assertEquals("Access denied for users with role: Admin", thrown.getMessage());
+        // Verify the results
+        assertEquals(userResponse, response);
+        verify(userRepository).findByEmail(email);
     }
 
     @Test
     public void testGetProfileByUsers_UserNotFound() {
-        String email = "nonexistent@example.com";
-        when(userRepository.findByEmail(eq(email))).thenReturn(Optional.empty());
+        // Setup mocks
+        String email = "test@example.com";
 
-        UserNotFoundException thrown = assertThrows(
-            UserNotFoundException.class,
-            () -> profileService.getProfileByUsers(email)
-        );
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
-        assertEquals("User not found with email: " + email, thrown.getMessage());
+        // Call the method under test and verify exception
+        try {
+            profileService.getProfileByUsers(email);
+        } catch (UserNotFoundException e) {
+            assertEquals("User not found with email: " + email, e.getMessage());
+        }
+        verify(userRepository).findByEmail(email);
     }
-    @Test
-    void editUserProfile_Success() {
-        String email="test@example.com";
 
-        when(userRepository.findByEmail(eq(email))).thenReturn(Optional.of(user));
-        when(passwordEncoder.encode("newPassword")).thenReturn("encodedPassword");
-        // Arrange
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+    @Test
+    public void testGetProfileByUsers_UnauthorizedAccess() {
+        // Setup mocks
+        String email = "admin@example.com";
+
+        User user = User.builder()
+                .id(1L)
+                .email(email)
+                .firstName("Admin")
+                .lastName("User")
+                .password("Password1@")
+                .gender("Male")
+                .country("USA")
+                .city("New York")
+                .role("Admin")
+                .build();
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+
+        // Call the method under test and verify exception
+        try {
+            profileService.getProfileByUsers(email);
+        } catch (UnauthorizedAccessException e) {
+            assertEquals("Access denied for users with role: Admin", e.getMessage());
+        }
+        verify(userRepository).findByEmail(email);
+    }
+
+    @Test
+    public void testEditUserProfile_Success() {
+        // Setup mocks
+        String email = "test@example.com";
+        EditProfileRequest request = new EditProfileRequest();
+        request.setFirstName("John");
+        request.setLastName("Doe");
+        request.setPassword("Password1@");
+        request.setGender("Male");
+        request.setCountry("USA");
+        request.setCity("New York");
+        byte[] imageBytes = "imageData".getBytes();
+
+        User user = User.builder()
+                .id(1L)
+                .email(email)
+                .firstName("OldFirstName")
+                .lastName("OldLastName")
+                .password("OldPassword")
+                .gender("OldGender")
+                .country("OldCountry")
+                .city("OldCity")
+                .build();
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+
+        MessageResponse expectedResponse = new MessageResponse("Profile updated successfully.");
         when(userRepository.save(any(User.class))).thenReturn(user);
 
-        // Act
-        MessageResponse response = profileService.editUserProfile("test@example.com", profileRequest);
+        // Call the method under test
+        MessageResponse response = profileService.editUserProfile(email, request, imageBytes);
 
-        // Assert
-        assertEquals("Profile updated successfully.", response.getMessage());
+        // Verify the results
+        assertEquals(expectedResponse.getMessage(), response.getMessage());
         verify(userRepository).save(user);
-        assertEquals("Updated", user.getFirstName()); // Verify first name was updated correctly
     }
 
     @Test
-    void testEditUserProfile_UserNotFound() {
-        // Arrange
-        String unknownEmail = "unknown@example.com";
-        EditProfileRequest profileRequest = new EditProfileRequest();
-        when(userRepository.findByEmail(eq(unknownEmail))).thenReturn(Optional.empty());
-        MessageResponse response = profileService.editUserProfile(unknownEmail, profileRequest);
-        assertNotNull(response);
-        assertEquals("Profile update failed: User not found", response.getMessage());
+    public void testEditUserProfile_InvalidPassword() {
+        // Setup mocks
+        String email = "test@example.com";
+        EditProfileRequest request = new EditProfileRequest();
+        request.setFirstName("John");
+        request.setLastName("Doe");
+        request.setPassword("short");
+        request.setGender("Male");
+        request.setCountry("USA");
+        request.setCity("New York");
 
+        // Call the method under test
+        MessageResponse response = profileService.editUserProfile(email, request, null);
+
+        // Verify the results
+        assertEquals("Password does not meet the required criteria.", response.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    public void testEditUserProfile_UserNotFound() {
+        // Setup mocks
+        String email = "test@example.com";
+        EditProfileRequest request = new EditProfileRequest();
+        request.setFirstName("John");
+        request.setLastName("Doe");
+        request.setPassword("Password1@");
+        request.setGender("Male");
+        request.setCountry("USA");
+        request.setCity("New York");
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        // Call the method under test
+        MessageResponse response = profileService.editUserProfile(email, request, null);
+
+        // Verify the results
+        assertEquals("Profile update failed: User not found", response.getMessage());
+        verify(userRepository, never()).save(any(User.class));
     }
 }

@@ -30,7 +30,7 @@ public class AdminService {
                     response.setCountry(user.getCountry()); // Adjust based on actual field names
                     response.setCity(user.getCity()); // Adjust based on actual field names
                     response.setEnabled(user.isEnabled());
-                    response.setProfileImageUrl(user.getImageUrl());
+                    response.setImageUrl(user.getImageUrl());
                     return response;
                 })
                 .collect(Collectors.toList());
