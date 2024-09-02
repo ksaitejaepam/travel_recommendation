@@ -11,11 +11,6 @@
         <module name="user-management-service" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="Travel-service" target="17" />
-      <module name="untitled" target="17" />
-      <module name="User-Service" target="17" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">

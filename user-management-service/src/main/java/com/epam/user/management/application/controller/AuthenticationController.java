@@ -1,12 +1,11 @@
 package com.epam.user.management.application.controller;
 
-import com.epam.user.management.application.dto.LoginRequest;
-import com.epam.user.management.application.dto.LoginResponse;
-import com.epam.user.management.application.dto.RegisterRequest;
-import com.epam.user.management.application.dto.RegisterResponse;
+import com.epam.user.management.application.dto.*;
 import com.epam.user.management.application.entity.User;
 import com.epam.user.management.application.service.AuthenticationService;
 import com.epam.user.management.application.service.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -50,5 +49,23 @@ public class AuthenticationController {
                 .build();
 
         return ResponseEntity.ok(loginResponse);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<LogoutResponse> logout(HttpServletRequest request) {
+        try {
+            String authorization = request.getHeader("Authorization");
+            if (authorization == null || !authorization.startsWith("Bearer ")) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+
+            String token = authorization.substring(7);
+            String email = jwtService.extractUsername(token);
+            LogoutResponse logoutResponse = authenticationService.logout(email);
+            return ResponseEntity.ok(logoutResponse);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new LogoutResponse("Logout failed: " + e.getMessage()));
+        }
     }
 }

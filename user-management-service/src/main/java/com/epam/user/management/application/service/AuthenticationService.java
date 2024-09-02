@@ -26,17 +26,21 @@ public class AuthenticationService {
 
     private final AuthenticationManager authenticationManager;
 
+    private JwtService jwtService;
+
     public AuthenticationService(
             UserRepository userRepository,
             AuthenticationManager authenticationManager,
             PasswordEncoder passwordEncoder,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            JwtService jwtService
 
     ) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.objectMapper = objectMapper;
+        this.jwtService = jwtService;
     }
 
     public RegisterResponse register(RegisterRequest registerRequest) {
@@ -74,5 +78,8 @@ public class AuthenticationService {
                 .orElseThrow();
     }
 
-
+    public LogoutResponse logout(String token) {
+        jwtService.blacklistToken(token);
+        return new LogoutResponse("Logout successful.");
+    }
 }
