@@ -11,7 +11,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.Date;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -24,16 +27,19 @@ public class ProfileServiceImpl implements ProfileService{
 
     private ObjectMapper objectMapper;
 
+    private FileStorageService fileStorageService;
+
    // private static final String PASSWORD_PATTERN = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,12}$";
     private static final String PASSWORD_PATTERN = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,12}$";
 
 
 
-    public ProfileServiceImpl(UserRepository userRepository,PasswordEncoder passwordEncoder,ObjectMapper objectMapper)
+    public ProfileServiceImpl(UserRepository userRepository,PasswordEncoder passwordEncoder,ObjectMapper objectMapper,FileStorageService fileStorageService)
     {
         this.userRepository=userRepository;
         this.passwordEncoder=passwordEncoder;
         this.objectMapper=objectMapper;
+        this.fileStorageService=fileStorageService;
     }
 
     private boolean isPasswordValid(String password) {
@@ -54,36 +60,21 @@ public class ProfileServiceImpl implements ProfileService{
             throw new UserNotFoundException("User not found with email: "+email);
         }
     }
-
-    @Transactional
     @Override
-    public MessageResponse editUserProfile(String userName, EditProfileRequest profileRequest) {
-        if (!isPasswordValid(profileRequest.getPassword())) {
-            return new MessageResponse("Password does not meet the required criteria.");
-        }
-        try
-        {
-            Optional <User> optionalUser = userRepository.findByEmail(userName);
-            User user;
-            if(optionalUser.isPresent() ){
-                user=optionalUser.get();
-                user.setFirstName(profileRequest.getFirstName());
-                user.setLastName(profileRequest.getLastName());
-                user.setPassword(passwordEncoder.encode(profileRequest.getPassword()));
-                user.setGender(profileRequest.getGender());
-                user.setCountry(profileRequest.getCountry());
-                user.setCity(profileRequest.getCity());
-                user.setImageUrl(profileRequest.getImageUrl());
-            }
-            else {
-                throw new UserNotFoundException("User not found");
-            }
-            userRepository.save(user);
-            return new MessageResponse("Profile updated successfully.");
-        }
-        catch (Exception e) {
-            // Log the exception details here for debugging
-            return new MessageResponse("Profile update failed: " + e.getMessage());
-        }
+    public void updateUser(String email , String firstName , String lastName , String gender,String password,String country , String city , MultipartFile file) throws IOException{
+        String filePath= fileStorageService.storeFile(file);
+        User user=userRepository.findByEmail(email).get();
+        User updatedUser=User.builder().id(user.getId()).email(user.getEmail()).role(user.getRole()).isEnabled(user.isEnabled()).createdAt(user.getCreatedAt()).updatedAt(new Date()).firstName(firstName)
+                .lastName(lastName).gender(gender).city(city).country(country).password(passwordEncoder.encode(password)).imageUrl(filePath).build();
+
+        UserResponse userResponse = new UserResponse();
+        userResponse.setFirstName(updatedUser.getFirstName());
+        userResponse.setLastName(updatedUser.getLastName());
+        userResponse.setEmail(updatedUser.getEmail());
+        userResponse.setGender(updatedUser.getGender());
+        userResponse.setCity(updatedUser.getCity());
+        userResponse.setCountry(updatedUser.getCountry());
+        userResponse.setProfileImageUrl(updatedUser.getImageUrl());
+        userRepository.save(updatedUser);
     }
 }

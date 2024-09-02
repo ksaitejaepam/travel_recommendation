@@ -13,7 +13,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserResponse {
     private Long id;
-    private String imageUrl;
+//    private byte[] image;
+    private String profileImageUrl;
     private String email;
     private String firstName;
     private String lastName;

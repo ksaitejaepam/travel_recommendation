@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @NoArgsConstructor
@@ -15,6 +16,7 @@ public class EditProfileRequest {
     private String gender;
     private String country;
     private String city;
-    private String imageUrl;
+//    private String imageUrl;
     private String email;
+    private MultipartFile imageFile;
 }
